@@ -1,0 +1,2128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClothLab — Clothing Designer</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  background:#08090d;
+  color:white;
+  min-height:100vh;
+}
+
+button,input,select{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+header{
+  height:70px;
+  background:#11131a;
+  border-bottom:1px solid #292c36;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px;
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+
+.logo{
+  font-size:22px;
+  font-weight:900;
+}
+
+.logo span{
+  color:#8b5cf6;
+}
+
+.header-buttons{
+  display:flex;
+  gap:8px;
+}
+
+.btn{
+  border:1px solid #30333e;
+  background:#181b23;
+  color:white;
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:700;
+}
+
+.btn:hover{
+  background:#252936;
+}
+
+.btn.primary{
+  background:#7c3aed;
+  border-color:#7c3aed;
+}
+
+.app{
+  display:grid;
+  grid-template-columns:260px 1fr 280px;
+  min-height:calc(100vh - 70px);
+}
+
+/* LEFT */
+
+.sidebar{
+  background:#101218;
+  border-right:1px solid #292c36;
+  padding:18px;
+  overflow-y:auto;
+}
+
+.section{
+  margin-bottom:24px;
+}
+
+.section-title{
+  font-size:12px;
+  color:#8e93a1;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  margin-bottom:10px;
+  font-weight:800;
+}
+
+.garments{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+
+.garment{
+  background:#181b23;
+  border:1px solid #2b2e38;
+  border-radius:12px;
+  padding:12px 5px;
+  text-align:center;
+  transition:.2s;
+}
+
+.garment:hover{
+  border-color:#8b5cf6;
+  transform:translateY(-2px);
+}
+
+.garment.active{
+  border-color:#8b5cf6;
+  box-shadow:0 0 0 1px #8b5cf6;
+}
+
+.garment-icon{
+  height:65px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:42px;
+}
+
+.garment-name{
+  font-size:12px;
+  font-weight:700;
+}
+
+.color-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.color{
+  width:31px;
+  height:31px;
+  border-radius:50%;
+  border:2px solid #30333e;
+}
+
+.color.active{
+  border-color:white;
+  box-shadow:0 0 0 2px #7c3aed;
+}
+
+.tool-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.tool{
+  width:100%;
+  text-align:left;
+  background:#181b23;
+  color:white;
+  border:1px solid #2b2e38;
+  padding:11px;
+  border-radius:10px;
+}
+
+.tool:hover{
+  background:#242732;
+}
+
+/* CENTER */
+
+.workspace{
+  background:
+    radial-gradient(circle at 50% 30%,#171927 0,#0c0e13 50%,#08090d 100%);
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+
+.workspace-top{
+  height:55px;
+  border-bottom:1px solid #292c36;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+}
+
+.view-btn{
+  border:1px solid #30333e;
+  background:#15171e;
+  color:#aaa;
+  padding:7px 16px;
+  border-radius:20px;
+}
+
+.view-btn.active{
+  background:#7c3aed;
+  color:white;
+  border-color:#7c3aed;
+}
+
+.canvas-area{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:35px;
+  overflow:auto;
+}
+
+.design-stage{
+  position:relative;
+  width:min(470px,80vw);
+  aspect-ratio:3/4;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.shirt{
+  position:relative;
+  width:390px;
+  height:470px;
+  transition:.3s;
+}
+
+.shirt-body{
+  position:absolute;
+  width:245px;
+  height:350px;
+  left:72px;
+  top:70px;
+  border-radius:12px 12px 20px 20px;
+  background:#f3f3f3;
+  box-shadow:0 18px 40px rgba(0,0,0,.45);
+}
+
+.sleeve{
+  position:absolute;
+  width:120px;
+  height:150px;
+  background:#f3f3f3;
+  top:65px;
+  border-radius:25px;
+  z-index:0;
+}
+
+.sleeve.left{
+  left:10px;
+  transform:rotate(27deg);
+}
+
+.sleeve.right{
+  right:10px;
+  transform:rotate(-27deg);
+}
+
+.neck{
+  position:absolute;
+  z-index:5;
+  width:80px;
+  height:38px;
+  border-radius:50%;
+  background:#08090d;
+  left:155px;
+  top:60px;
+}
+
+.clothing-art{
+  position:absolute;
+  z-index:10;
+  left:50%;
+  top:190px;
+  transform:translate(-50%,-50%);
+  width:190px;
+  min-height:80px;
+  text-align:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  pointer-events:none;
+}
+
+.art-logo{
+  font-size:44px;
+  font-weight:1000;
+  letter-spacing:-3px;
+  text-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+
+.art-sub{
+  font-size:12px;
+  letter-spacing:5px;
+  margin-top:4px;
+}
+
+.design-element{
+  position:absolute;
+  z-index:20;
+  cursor:move;
+  user-select:none;
+  border:1px dashed transparent;
+  padding:5px;
+}
+
+.design-element.selected{
+  border-color:#8b5cf6;
+}
+
+.design-element img{
+  max-width:180px;
+  max-height:180px;
+  display:block;
+}
+
+.text-element{
+  font-size:32px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.stage-tools{
+  position:absolute;
+  bottom:15px;
+  display:flex;
+  gap:8px;
+  background:#12141b;
+  padding:8px;
+  border:1px solid #292c36;
+  border-radius:12px;
+}
+
+/* RIGHT */
+
+.rightbar{
+  background:#101218;
+  border-left:1px solid #292c36;
+  padding:18px;
+  overflow-y:auto;
+}
+
+.property{
+  background:#181b23;
+  border:1px solid #2b2e38;
+  padding:14px;
+  border-radius:12px;
+  margin-bottom:12px;
+}
+
+.property h3{
+  font-size:14px;
+  margin-bottom:13px;
+}
+
+.field{
+  margin-bottom:13px;
+}
+
+.field label{
+  display:block;
+  color:#999eac;
+  font-size:11px;
+  margin-bottom:6px;
+  text-transform:uppercase;
+}
+
+.field input[type="text"],
+.field input[type="number"],
+.field select{
+  width:100%;
+  background:#0d0f14;
+  color:white;
+  border:1px solid #30333e;
+  padding:9px;
+  border-radius:8px;
+}
+
+.range{
+  width:100%;
+}
+
+.action-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.action{
+  background:#20232c;
+  color:white;
+  border:1px solid #30333e;
+  padding:9px;
+  border-radius:8px;
+}
+
+.empty{
+  color:#858a98;
+  font-size:13px;
+  line-height:1.5;
+}
+
+/* MODAL */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+  padding:20px;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.modal-box{
+  background:#151820;
+  border:1px solid #30333e;
+  width:min(500px,100%);
+  padding:22px;
+  border-radius:18px;
+}
+
+.modal-head{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:20px;
+}
+
+.modal-title{
+  font-size:20px;
+  font-weight:900;
+}
+
+.close{
+  background:none;
+  border:0;
+  color:white;
+  font-size:24px;
+}
+
+.template-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.template{
+  background:#20232c;
+  border:1px solid #30333e;
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+}
+
+@media(max-width:1000px){
+  .app{
+    grid-template-columns:210px 1fr;
+  }
+
+  .rightbar{
+    display:none;
+  }
+}
+
+@media(max-width:700px){
+  header{
+    height:60px;
+  }
+
+  .app{
+    display:block;
+  }
+
+  .sidebar{
+    border-right:0;
+    border-bottom:1px solid #292c36;
+    max-height:250px;
+  }
+
+  .garments{
+    grid-template-columns:repeat(4,1fr);
+  }
+
+  .garment-icon{
+    font-size:30px;
+    height:45px;
+  }
+
+  .canvas-area{
+    min-height:600px;
+    padding:15px;
+  }
+
+  .shirt{
+    transform:scale(.8);
+  }
+
+  .header-buttons .btn{
+    padding:7px 9px;
+    font-size:11px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">CLOTH<span>LAB</span> ✦</div>
+
+  <div class="header-buttons">
+    <button class="btn" onclick="undo()">↶</button>
+    <button class="btn" onclick="redo()">↷</button>
+    <button class="btn" onclick="newDesign()">New</button>
+    <button class="btn primary" onclick="exportDesign()">Export PNG</button>
+  </div>
+</header>
+
+<div class="app">
+
+<!-- LEFT SIDEBAR -->
+
+<aside class="sidebar">
+
+  <div class="section">
+    <div class="section-title">Garment</div>
+
+    <div class="garments">
+
+      <button class="garment active" onclick="selectGarment('shirt',this)">
+        <div class="garment-icon">👕</div>
+        <div class="garment-name">T-Shirt</div>
+      </button>
+
+      <button class="garment" onclick="selectGarment('hoodie',this)">
+        <div class="garment-icon">🧥</div>
+        <div class="garment-name">Hoodie</div>
+      </button>
+
+      <button class="garment" onclick="selectGarment('jersey',this)">
+        <div class="garment-icon">🏀</div>
+        <div class="garment-name">Jersey</div>
+      </button>
+
+      <button class="garment" onclick="selectGarment('jacket',this)">
+        <div class="garment-icon">🧥</div>
+        <div class="garment-name">Jacket</div>
+      </button>
+
+      <button class="garment" onclick="selectGarment('shorts',this)">
+        <div class="garment-icon">🩳</div>
+        <div class="garment-name">Shorts</div>
+      </button>
+
+      <button class="garment" onclick="selectGarment('cap',this)">
+        <div class="garment-icon">🧢</div>
+        <div class="garment-name">Cap</div>
+      </button>
+
+    </div>
+  </div>
+
+  <div class="section">
+
+    <div class="section-title">Garment Color</div>
+
+    <div class="color-row">
+
+      <button class="color active" style="background:#f5f5f5"
+      onclick="changeColor('#f5f5f5',this)"></button>
+
+      <button class="color" style="background:#050505"
+      onclick="changeColor('#050505',this)"></button>
+
+      <button class="color" style="background:#ef4444"
+      onclick="changeColor('#ef4444',this)"></button>
+
+      <button class="color" style="background:#2563eb"
+      onclick="changeColor('#2563eb',this)"></button>
+
+      <button class="color" style="background:#16a34a"
+      onclick="changeColor('#16a34a',this)"></button>
+
+      <button class="color" style="background:#facc15"
+      onclick="changeColor('#facc15',this)"></button>
+
+      <button class="color" style="background:#7c3aed"
+      onclick="changeColor('#7c3aed',this)"></button>
+
+      <button class="color" style="background:#ec4899"
+      onclick="changeColor('#ec4899',this)"></button>
+
+      <button class="color" style="background:#9ca3af"
+      onclick="changeColor('#9ca3af',this)"></button>
+
+    </div>
+
+  </div>
+
+  <div class="section">
+
+    <div class="section-title">Add</div>
+
+    <div class="tool-list">
+
+      <button class="tool" onclick="addText()">
+        T&nbsp;&nbsp; Add Text
+      </button>
+
+      <button class="tool" onclick="document.getElementById('imageInput').click()">
+        🖼️ Add Image / Logo
+      </button>
+
+      <button class="tool" onclick="addShape('circle')">
+        ● Add Circle
+      </button>
+
+      <button class="tool" onclick="addShape('square')">
+        ■ Add Square
+      </button>
+
+      <button class="tool" onclick="addShape('star')">
+        ★ Add Star
+      </button>
+
+      <button class="tool" onclick="toggleDrawing()">
+        ✏️ Drawing Mode
+      </button>
+
+      <input
+        id="imageInput"
+        type="file"
+        accept="image/*"
+        style="display:none"
+        onchange="uploadImage(event)"
+      >
+
+    </div>
+
+  </div>
+
+  <div class="section">
+
+    <div class="section-title">Templates</div>
+
+    <div class="tool-list">
+
+      <button class="tool" onclick="openTemplates()">
+        ✦ Streetwear Templates
+      </button>
+
+      <button class="tool" onclick="applyTemplate('minimal')">
+        Minimal
+      </button>
+
+      <button class="tool" onclick="applyTemplate('street')">
+        Street
+      </button>
+
+      <button class="tool" onclick="applyTemplate('sport')">
+        Sport
+      </button>
+
+    </div>
+
+  </div>
+
+</aside>
+
+
+<!-- CENTER -->
+
+<main class="workspace">
+
+  <div class="workspace-top">
+
+    <button class="view-btn active" id="frontBtn"
+      onclick="setView('front')">
+      FRONT
+    </button>
+
+    <button class="view-btn"
+      id="backBtn"
+      onclick="setView('back')">
+      BACK
+    </button>
+
+  </div>
+
+  <div class="canvas-area">
+
+    <div class="design-stage" id="designStage">
+
+      <div class="shirt" id="shirt">
+
+        <div class="sleeve left garmentPart"></div>
+        <div class="sleeve right garmentPart"></div>
+
+        <div class="shirt-body garmentPart"></div>
+
+        <div class="neck"></div>
+
+        <div
+          class="clothing-art"
+          id="defaultLogo"
+        >
+          <div class="art-logo">YOUR</div>
+          <div class="art-logo">BRAND</div>
+          <div class="art-sub">EST. 2026</div>
+        </div>
+
+      </div>
+
+      <div class="stage-tools">
+
+        <button class="action" onclick="zoom(-10)">−</button>
+        <button class="action" onclick="zoom(10)">+</button>
+        <button class="action" onclick="resetZoom()">Reset</button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+
+<!-- RIGHT -->
+
+<aside class="rightbar">
+
+  <div class="property">
+
+    <h3>Design</h3>
+
+    <div class="field">
+      <label>Design Name</label>
+      <input
+        type="text"
+        id="designName"
+        value="My New Design"
+        onchange="saveState()"
+      >
+    </div>
+
+    <div class="field">
+      <label>Garment</label>
+
+      <select id="garmentSelect"
+        onchange="selectGarment(this.value)">
+        <option value="shirt">T-Shirt</option>
+        <option value="hoodie">Hoodie</option>
+        <option value="jersey">Jersey</option>
+        <option value="jacket">Jacket</option>
+        <option value="shorts">Shorts</option>
+        <option value="cap">Cap</option>
+      </select>
+
+    </div>
+
+  </div>
+
+
+  <div class="property">
+
+    <h3>Selected Element</h3>
+
+    <div id="elementControls">
+
+      <div class="empty">
+        Select an element on the garment to edit it.
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="property">
+
+    <h3>Layer</h3>
+
+    <div class="action-grid">
+
+      <button class="action" onclick="bringForward()">
+        ↑ Forward
+      </button>
+
+      <button class="action" onclick="sendBackward()">
+        ↓ Back
+      </button>
+
+      <button class="action" onclick="duplicateSelected()">
+        Duplicate
+      </button>
+
+      <button class="action" onclick="deleteSelected()">
+        Delete
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div class="property">
+
+    <h3>Quick Actions</h3>
+
+    <div class="action-grid">
+
+      <button class="action" onclick="centerSelected()">
+        Center
+      </button>
+
+      <button class="action" onclick="resetDesign()">
+        Reset
+      </button>
+
+      <button class="action" onclick="saveProject()">
+        Save
+      </button>
+
+      <button class="action" onclick="loadProject()">
+        Load
+      </button>
+
+    </div>
+
+  </div>
+
+</aside>
+
+</div>
+
+
+<!-- TEMPLATE MODAL -->
+
+<div class="modal" id="templateModal">
+
+  <div class="modal-box">
+
+    <div class="modal-head">
+
+      <div class="modal-title">
+        Choose Template
+      </div>
+
+      <button class="close"
+        onclick="closeTemplates()">
+        ×
+      </button>
+
+    </div>
+
+    <div class="template-grid">
+
+      <button class="template"
+        onclick="applyTemplate('minimal');closeTemplates()">
+        <div style="font-size:40px">◇</div>
+        <br>
+        Minimal
+      </button>
+
+      <button class="template"
+        onclick="applyTemplate('street');closeTemplates()">
+        <div style="font-size:40px">★</div>
+        <br>
+        Streetwear
+      </button>
+
+      <button class="template"
+        onclick="applyTemplate('sport');closeTemplates()">
+        <div style="font-size:40px">⚡</div>
+        <br>
+        Sport
+      </button>
+
+      <button class="template"
+        onclick="applyTemplate('luxury');closeTemplates()">
+        <div style="font-size:40px">✦</div>
+        <br>
+        Luxury
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   CLOTHLAB ENGINE
+========================================================= */
+
+let selectedElement = null;
+let currentView = "front";
+let currentColor = "#f5f5f5";
+let zoomLevel = 1;
+
+let history = [];
+let historyIndex = -1;
+
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+function saveState(){
+
+  const stage = document.getElementById("designStage");
+
+  const state = {
+    html: stage.innerHTML,
+    color:currentColor
+  };
+
+  history = history.slice(0,historyIndex+1);
+
+  history.push(state);
+
+  historyIndex++;
+
+  if(history.length > 30){
+    history.shift();
+    historyIndex--;
+  }
+
+}
+
+function restoreState(state){
+
+  const stage = document.getElementById("designStage");
+
+  stage.innerHTML = state.html;
+
+  currentColor = state.color;
+
+  selectedElement = null;
+
+  setupElements();
+
+  applyGarmentColor();
+
+}
+
+function undo(){
+
+  if(historyIndex <= 0) return;
+
+  historyIndex--;
+
+  restoreState(history[historyIndex]);
+
+}
+
+function redo(){
+
+  if(historyIndex >= history.length-1) return;
+
+  historyIndex++;
+
+  restoreState(history[historyIndex]);
+
+}
+
+
+/* =========================================================
+   GARMENT
+========================================================= */
+
+function selectGarment(type,button){
+
+  if(typeof button === "object"){
+    document.querySelectorAll(".garment")
+      .forEach(x=>x.classList.remove("active"));
+
+    button.classList.add("active");
+  }
+
+  document.getElementById("garmentSelect").value = type;
+
+  const shirt = document.getElementById("shirt");
+
+  if(type==="hoodie"){
+
+    shirt.style.filter="none";
+
+    document.querySelector(".neck").style.width="100px";
+
+  }
+
+  if(type==="shirt"){
+
+    document.querySelector(".neck").style.width="80px";
+
+  }
+
+  if(type==="jersey"){
+
+    document.querySelector(".neck").style.width="90px";
+
+  }
+
+  if(type==="jacket"){
+
+    document.querySelector(".neck").style.width="70px";
+
+  }
+
+  if(type==="shorts"){
+
+    alert("Shorts mode selected. Garment customization is ready for the next shape upgrade.");
+
+  }
+
+  if(type==="cap"){
+
+    alert("Cap mode selected. Garment customization is ready for the next shape upgrade.");
+
+  }
+
+  saveState();
+
+}
+
+
+/* =========================================================
+   COLOR
+========================================================= */
+
+function changeColor(color,button){
+
+  currentColor = color;
+
+  document.querySelectorAll(".color")
+    .forEach(x=>x.classList.remove("active"));
+
+  button.classList.add("active");
+
+  applyGarmentColor();
+
+  saveState();
+
+}
+
+function applyGarmentColor(){
+
+  document.querySelectorAll(".garmentPart")
+    .forEach(el=>{
+      el.style.background=currentColor;
+    });
+
+}
+
+
+/* =========================================================
+   VIEW
+========================================================= */
+
+function setView(view){
+
+  currentView=view;
+
+  document.getElementById("frontBtn")
+    .classList.toggle("active",view==="front");
+
+  document.getElementById("backBtn")
+    .classList.toggle("active",view==="back");
+
+  const logo=document.getElementById("defaultLogo");
+
+  if(view==="back"){
+
+    logo.innerHTML=`
+      <div class="art-sub">CLOTHLAB</div>
+      <div class="art-logo">BACK</div>
+      <div class="art-sub">ORIGINAL DESIGN</div>
+    `;
+
+  }else{
+
+    logo.innerHTML=`
+      <div class="art-logo">YOUR</div>
+      <div class="art-logo">BRAND</div>
+      <div class="art-sub">EST. 2026</div>
+    `;
+
+  }
+
+}
+
+
+/* =========================================================
+   TEXT
+========================================================= */
+
+function addText(){
+
+  const el=document.createElement("div");
+
+  el.className="design-element text-element";
+
+  el.textContent="YOUR TEXT";
+
+  el.style.left="50%";
+  el.style.top="50%";
+  el.style.transform="translate(-50%,-50%)";
+  el.style.color="white";
+
+  document.getElementById("shirt").appendChild(el);
+
+  makeSelectable(el);
+
+  selectElement(el);
+
+  saveState();
+
+}
+
+
+/* =========================================================
+   SHAPES
+========================================================= */
+
+function addShape(type){
+
+  const el=document.createElement("div");
+
+  el.className="design-element";
+
+  el.style.width="90px";
+  el.style.height="90px";
+
+  el.style.left="50%";
+  el.style.top="50%";
+
+  el.style.transform="translate(-50%,-50%)";
+
+  if(type==="circle"){
+
+    el.style.borderRadius="50%";
+    el.style.background="#ffffff";
+
+  }
+
+  if(type==="square"){
+
+    el.style.background="#ffffff";
+
+  }
+
+  if(type==="star"){
+
+    el.textContent="★";
+    el.style.fontSize="90px";
+    el.style.color="#ffffff";
+    el.style.lineHeight="90px";
+    el.style.textAlign="center";
+    el.style.width="100px";
+    el.style.height="100px";
+
+  }
+
+  document.getElementById("shirt").appendChild(el);
+
+  makeSelectable(el);
+
+  selectElement(el);
+
+  saveState();
+
+}
+
+
+/* =========================================================
+   IMAGE UPLOAD
+========================================================= */
+
+function uploadImage(event){
+
+  const file=event.target.files[0];
+
+  if(!file)return;
+
+  const reader=new FileReader();
+
+  reader.onload=function(e){
+
+    const wrapper=document.createElement("div");
+
+    wrapper.className="design-element";
+
+    wrapper.style.left="50%";
+    wrapper.style.top="50%";
+    wrapper.style.transform="translate(-50%,-50%)";
+
+    const img=document.createElement("img");
+
+    img.src=e.target.result;
+
+    wrapper.appendChild(img);
+
+    document.getElementById("shirt")
+      .appendChild(wrapper);
+
+    makeSelectable(wrapper);
+
+    selectElement(wrapper);
+
+    saveState();
+
+  };
+
+  reader.readAsDataURL(file);
+
+  event.target.value="";
+
+}
+
+
+/* =========================================================
+   ELEMENT SELECTION
+========================================================= */
+
+function makeSelectable(el){
+
+  el.addEventListener("mousedown",startDrag);
+  el.addEventListener("touchstart",startDrag,{passive:false});
+
+  el.addEventListener("click",function(e){
+
+    e.stopPropagation();
+
+    selectElement(el);
+
+  });
+
+}
+
+function setupElements(){
+
+  document.querySelectorAll(".design-element")
+    .forEach(makeSelectable);
+
+}
+
+function selectElement(el){
+
+  if(selectedElement){
+
+    selectedElement.classList.remove("selected");
+
+  }
+
+  selectedElement=el;
+
+  if(el){
+
+    el.classList.add("selected");
+
+    showControls(el);
+
+  }
+
+}
+
+
+/* =========================================================
+   DRAGGING
+========================================================= */
+
+let dragging=false;
+let dragOffsetX=0;
+let dragOffsetY=0;
+
+function startDrag(e){
+
+  if(e.target.closest(".design-element")){
+
+    const el=e.currentTarget;
+
+    selectElement(el);
+
+    dragging=true;
+
+    const rect=el.getBoundingClientRect();
+
+    const point=e.touches ? e.touches[0] : e;
+
+    dragOffsetX=point.clientX-rect.left;
+    dragOffsetY=point.clientY-rect.top;
+
+    document.addEventListener("mousemove",dragMove);
+    document.addEventListener("mouseup",endDrag);
+
+    document.addEventListener("touchmove",dragMove,{passive:false});
+    document.addEventListener("touchend",endDrag);
+
+    e.preventDefault();
+
+  }
+
+}
+
+function dragMove(e){
+
+  if(!dragging || !selectedElement)return;
+
+  const shirt=document.getElementById("shirt");
+
+  const rect=shirt.getBoundingClientRect();
+
+  const point=e.touches ? e.touches[0] : e;
+
+  let x=point.clientX-rect.left-dragOffsetX;
+  let y=point.clientY-rect.top-dragOffsetY;
+
+  x=(x/rect.width)*100;
+  y=(y/rect.height)*100;
+
+  selectedElement.style.left=x+"%";
+  selectedElement.style.top=y+"%";
+
+}
+
+function endDrag(){
+
+  dragging=false;
+
+  document.removeEventListener("mousemove",dragMove);
+  document.removeEventListener("mouseup",endDrag);
+
+  document.removeEventListener("touchmove",dragMove);
+  document.removeEventListener("touchend",endDrag);
+
+  saveState();
+
+}
+
+
+/* =========================================================
+   CONTROLS
+========================================================= */
+
+function showControls(el){
+
+  const box=document.getElementById("elementControls");
+
+  box.innerHTML=`
+
+    <div class="field">
+      <label>Text</label>
+      <input
+        type="text"
+        id="editText"
+        value="${el.textContent || ""}"
+      >
+    </div>
+
+    <div class="field">
+      <label>Size</label>
+      <input
+        class="range"
+        type="range"
+        min="10"
+        max="150"
+        value="40"
+        id="sizeRange"
+      >
+    </div>
+
+    <div class="field">
+      <label>Rotation</label>
+      <input
+        class="range"
+        type="range"
+        min="-180"
+        max="180"
+        value="0"
+        id="rotateRange"
+      >
+    </div>
+
+    <div class="field">
+      <label>Element Color</label>
+      <input
+        type="color"
+        id="elementColor"
+        value="#ffffff"
+        style="width:100%;height:40px"
+      >
+    </div>
+
+  `;
+
+  const text=document.getElementById("editText");
+
+  text.addEventListener("input",function(){
+
+    if(el.classList.contains("text-element") ||
+       !el.querySelector("img")){
+
+      el.textContent=this.value;
+
+    }
+
+  });
+
+  document.getElementById("sizeRange")
+    .addEventListener("input",function(){
+
+      if(el.querySelector("img")){
+
+        el.querySelector("img").style.maxWidth=this.value+"px";
+
+      }else{
+
+        el.style.fontSize=this.value+"px";
+
+      }
+
+    });
+
+  document.getElementById("rotateRange")
+    .addEventListener("input",function(){
+
+      el.style.transform=
+        "translate(-50%,-50%) rotate("+this.value+"deg)";
+
+    });
+
+  document.getElementById("elementColor")
+    .addEventListener("input",function(){
+
+      el.style.color=this.value;
+
+      if(!el.querySelector("img")){
+        el.style.backgroundColor=
+          el.classList.contains("text-element")
+          ? "transparent"
+          : this.value;
+      }
+
+    });
+
+}
+
+
+/* =========================================================
+   CENTER
+========================================================= */
+
+function centerSelected(){
+
+  if(!selectedElement)return;
+
+  selectedElement.style.left="50%";
+  selectedElement.style.top="50%";
+
+  saveState();
+
+}
+
+
+/* =========================================================
+   DELETE
+========================================================= */
+
+function deleteSelected(){
+
+  if(!selectedElement)return;
+
+  selectedElement.remove();
+
+  selectedElement=null;
+
+  document.getElementById("elementControls").innerHTML=`
+    <div class="empty">
+      Select an element on the garment to edit it.
+    </div>
+  `;
+
+  saveState();
+
+}
+
+
+/* =========================================================
+   DUPLICATE
+========================================================= */
+
+function duplicateSelected(){
+
+  if(!selectedElement)return;
+
+  const copy=selectedElement.cloneNode(true);
+
+  copy.style.left=
+    "calc("+selectedElement.style.left+" + 30px)";
+
+  document.getElementById("shirt")
+    .appendChild(copy);
+
+  makeSelectable(copy);
+
+  selectElement(copy);
+
+  saveState();
+
+}
+
+
+/* =========================================================
+   LAYERS
+========================================================= */
+
+function bringForward(){
+
+  if(!selectedElement)return;
+
+  selectedElement.style.zIndex=
+    parseInt(selectedElement.style.zIndex || 20)+1;
+
+  saveState();
+
+}
+
+function sendBackward(){
+
+  if(!selectedElement)return;
+
+  selectedElement.style.zIndex=
+    Math.max(
+      1,
+      parseInt(selectedElement.style.zIndex || 20)-1
+    );
+
+  saveState();
+
+}
+
+
+/* =========================================================
+   DRAWING
+========================================================= */
+
+let drawing=false;
+let canvas=null;
+let ctx=null;
+
+function toggleDrawing(){
+
+  if(!canvas){
+
+    canvas=document.createElement("canvas");
+
+    canvas.width=390;
+    canvas.height=470;
+
+    canvas.style.position="absolute";
+    canvas.style.left="0";
+    canvas.style.top="0";
+    canvas.style.width="390px";
+    canvas.style.height="470px";
+    canvas.style.zIndex="30";
+    canvas.style.pointerEvents="auto";
+
+    document.getElementById("shirt")
+      .appendChild(canvas);
+
+    ctx=canvas.getContext("2d");
+
+    ctx.strokeStyle="#ffffff";
+    ctx.lineWidth=5;
+    ctx.lineCap="round";
+
+    canvas.addEventListener("mousedown",startDraw);
+    canvas.addEventListener("mousemove",draw);
+    canvas.addEventListener("mouseup",stopDraw);
+    canvas.addEventListener("mouseleave",stopDraw);
+
+    canvas.addEventListener("touchstart",startDraw);
+    canvas.addEventListener("touchmove",draw);
+    canvas.addEventListener("touchend",stopDraw);
+
+  }
+
+  drawing=!drawing;
+
+  canvas.style.pointerEvents=
+    drawing ? "auto":"none";
+
+  alert(
+    drawing
+    ? "Drawing mode ON. Draw directly on the garment."
+    : "Drawing mode OFF."
+  );
+
+}
+
+function getPoint(e){
+
+  const rect=canvas.getBoundingClientRect();
+
+  const p=e.touches ? e.touches[0] : e;
+
+  return {
+    x:(p.clientX-rect.left)*(canvas.width/rect.width),
+    y:(p.clientY-rect.top)*(canvas.height/rect.height)
+  };
+
+}
+
+function startDraw(e){
+
+  if(!drawing)return;
+
+  const p=getPoint(e);
+
+  ctx.beginPath();
+  ctx.moveTo(p.x,p.y);
+
+  e.preventDefault();
+
+}
+
+function draw(e){
+
+  if(!drawing)return;
+
+  const p=getPoint(e);
+
+  ctx.lineTo(p.x,p.y);
+  ctx.stroke();
+
+  e.preventDefault();
+
+}
+
+function stopDraw(){
+
+  if(drawing){
+
+    saveState();
+
+  }
+
+}
+
+
+/* =========================================================
+   ZOOM
+========================================================= */
+
+function zoom(amount){
+
+  zoomLevel+=amount/100;
+
+  zoomLevel=Math.max(.5,Math.min(1.5,zoomLevel));
+
+  document.getElementById("shirt").style.transform=
+    "scale("+zoomLevel+")";
+
+}
+
+function resetZoom(){
+
+  zoomLevel=1;
+
+  document.getElementById("shirt").style.transform=
+    "scale(1)";
+
+}
+
+
+/* =========================================================
+   TEMPLATES
+========================================================= */
+
+function applyTemplate(type){
+
+  const shirt=document.getElementById("shirt");
+
+  document.querySelectorAll(".design-element")
+    .forEach(x=>x.remove());
+
+  if(canvas){
+
+    canvas.remove();
+    canvas=null;
+
+  }
+
+  if(type==="minimal"){
+
+    const text=document.createElement("div");
+
+    text.className="design-element text-element";
+
+    text.textContent="H U D D L E";
+
+    text.style.left="50%";
+    text.style.top="50%";
+    text.style.transform="translate(-50%,-50%)";
+    text.style.fontSize="30px";
+    text.style.letterSpacing="8px";
+
+    shirt.appendChild(text);
+
+    makeSelectable(text);
+
+  }
+
+  if(type==="street"){
+
+    const top=document.createElement("div");
+
+    top.className="design-element text-element";
+    top.textContent="NO RULES";
+
+    top.style.left="50%";
+    top.style.top="42%";
+    top.style.transform="translate(-50%,-50%)";
+    top.style.fontSize="38px";
+    top.style.color="#ffffff";
+
+    shirt.appendChild(top);
+
+    makeSelectable(top);
+
+    const bottom=document.createElement("div");
+
+    bottom.className="design-element text-element";
+    bottom.textContent="CREATE YOUR OWN LANE";
+
+    bottom.style.left="50%";
+    bottom.style.top="58%";
+    bottom.style.transform="translate(-50%,-50%)";
+    bottom.style.fontSize="11px";
+    bottom.style.letterSpacing="4px";
+
+    shirt.appendChild(bottom);
+
+    makeSelectable(bottom);
+
+  }
+
+  if(type==="sport"){
+
+    const number=document.createElement("div");
+
+    number.className="design-element text-element";
+
+    number.textContent="07";
+
+    number.style.left="50%";
+    number.style.top="50%";
+    number.style.transform="translate(-50%,-50%)";
+    number.style.fontSize="100px";
+    number.style.fontStyle="italic";
+
+    shirt.appendChild(number);
+
+    makeSelectable(number);
+
+  }
+
+  if(type==="luxury"){
+
+    const logo=document.createElement("div");
+
+    logo.className="design-element text-element";
+
+    logo.textContent="CL";
+
+    logo.style.left="50%";
+    logo.style.top="48%";
+    logo.style.transform="translate(-50%,-50%)";
+    logo.style.fontSize="80px";
+    logo.style.letterSpacing="-10px";
+
+    shirt.appendChild(logo);
+
+    makeSelectable(logo);
+
+    const sub=document.createElement("div");
+
+    sub.className="design-element text-element";
+
+    sub.textContent="CLOTHLAB";
+
+    sub.style.left="50%";
+    sub.style.top="60%";
+    sub.style.transform="translate(-50%,-50%)";
+    sub.style.fontSize="12px";
+    sub.style.letterSpacing="8px";
+
+    shirt.appendChild(sub);
+
+    makeSelectable(sub);
+
+  }
+
+  saveState();
+
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+function openTemplates(){
+
+  document.getElementById("templateModal")
+    .classList.add("show");
+
+}
+
+function closeTemplates(){
+
+  document.getElementById("templateModal")
+    .classList.remove("show");
+
+}
+
+
+/* =========================================================
+   NEW DESIGN
+========================================================= */
+
+function newDesign(){
+
+  if(!confirm("Start a new design?"))return;
+
+  location.reload();
+
+}
+
+function resetDesign(){
+
+  document.querySelectorAll(".design-element")
+    .forEach(x=>x.remove());
+
+  const logo=document.getElementById("defaultLogo");
+
+  logo.innerHTML=`
+    <div class="art-logo">YOUR</div>
+    <div class="art-logo">BRAND</div>
+    <div class="art-sub">EST. 2026</div>
+  `;
+
+  currentColor="#f5f5f5";
+
+  applyGarmentColor();
+
+  saveState();
+
+}
+
+
+/* =========================================================
+   SAVE / LOAD
+========================================================= */
+
+function saveProject(){
+
+  const project={
+    name:document.getElementById("designName").value,
+    html:document.getElementById("designStage").innerHTML,
+    color:currentColor
+  };
+
+  localStorage.setItem(
+    "clothlab_project",
+    JSON.stringify(project)
+  );
+
+  alert("Design saved on this device.");
+
+}
+
+function loadProject(){
+
+  const data=localStorage.getItem("clothlab_project");
+
+  if(!data){
+
+    alert("No saved project found.");
+
+    return;
+
+  }
+
+  const project=JSON.parse(data);
+
+  document.getElementById("designName").value=
+    project.name;
+
+  document.getElementById("designStage").innerHTML=
+    project.html;
+
+  currentColor=project.color;
+
+  setupElements();
+
+  applyGarmentColor();
+
+  alert("Design loaded.");
+
+}
+
+
+/* =========================================================
+   EXPORT PNG
+========================================================= */
+
+function exportDesign(){
+
+  const shirt=document.getElementById("shirt");
+
+  const canvas=document.createElement("canvas");
+
+  canvas.width=1000;
+  canvas.height=1200;
+
+  const ctx=canvas.getContext("2d");
+
+  ctx.fillStyle="#ffffff";
+
+  ctx.fillRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  ctx.fillStyle="#111111";
+
+  ctx.font="bold 38px Arial";
+
+  ctx.textAlign="center";
+
+  ctx.fillText(
+    document.getElementById("designName").value,
+    500,
+    70
+  );
+
+  ctx.font="24px Arial";
+
+  ctx.fillStyle="#777";
+
+  ctx.fillText(
+    currentView.toUpperCase()+" VIEW",
+    500,
+    110
+  );
+
+  /*
+    Simple high-resolution garment export.
+    The live editor remains interactive while
+    the exported file gives a clean presentation.
+  */
+
+  const bodyColor=currentColor;
+
+  ctx.fillStyle=bodyColor;
+
+  ctx.beginPath();
+
+  ctx.roundRect(
+    300,
+    250,
+    400,
+    600,
+    30
+  );
+
+  ctx.fill();
+
+  ctx.beginPath();
+
+  ctx.arc(
+    500,
+    250,
+    65,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fillStyle="#ffffff";
+
+  ctx.fill();
+
+  ctx.fillStyle=
+    bodyColor === "#050505"
+    ? "#ffffff"
+    : "#111111";
+
+  ctx.font="bold 65px Arial";
+
+  ctx.fillText(
+    "YOUR",
+    500,
+    520
+  );
+
+  ctx.fillText(
+    "BRAND",
+    500,
+    590
+  );
+
+  ctx.font="20px Arial";
+
+  ctx.fillText(
+    "EST. 2026",
+    500,
+    635
+  );
+
+  const link=document.createElement("a");
+
+  link.download=
+    (document.getElementById("designName").value
+      ||"clothlab-design")
+    .replace(/\s+/g,"-")
+    .toLowerCase()
+    +".png";
+
+  link.href=canvas.toDataURL("image/png");
+
+  link.click();
+
+}
+
+
+/* =========================================================
+   CLICK OUTSIDE
+========================================================= */
+
+document
+  .getElementById("shirt")
+  .addEventListener("click",function(e){
+
+    if(
+      e.target===this ||
+      e.target.classList.contains("shirt-body") ||
+      e.target.classList.contains("sleeve")
+    ){
+
+      selectElement(null);
+
+    }
+
+  });
+
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+========================================================= */
+
+document.addEventListener("keydown",function(e){
+
+  if(e.key==="Delete"){
+
+    deleteSelected();
+
+  }
+
+  if((e.ctrlKey||e.metaKey) && e.key==="z"){
+
+    e.preventDefault();
+    undo();
+
+  }
+
+  if((e.ctrlKey||e.metaKey) && e.key==="y"){
+
+    e.preventDefault();
+    redo();
+
+  }
+
+});
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+function initialize(){
+
+  applyGarmentColor();
+
+  setupElements();
+
+  saveState();
+
+}
+
+initialize();
+
+</script>
+
+</body>
+</html>
